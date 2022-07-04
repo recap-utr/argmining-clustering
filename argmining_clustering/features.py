@@ -5,6 +5,7 @@ import arguebuf
 import numpy as np
 import spacy
 from scipy.spatial.distance import cosine
+from spacy.tokens.doc import Doc
 from textacy.extract.keyterms.yake import yake
 
 SPACY_MODEL = "en_core_web_lg"
@@ -27,11 +28,11 @@ parse = spacy.load(SPACY_MODEL)
 #     }
 
 
-def nlp(texts: t.Iterable[str]) -> t.List[spacy.tokens.doc.Doc]:
+def nlp(texts: t.Iterable[str]) -> t.List[Doc]:
     return list(parse.pipe(texts))
 
 
-def extract_embeddings(doc: spacy.tokens.doc.Doc) -> np.ndarray:
+def extract_embeddings(doc: Doc) -> np.ndarray:
 
     if SPACY_MODEL == "en_core_web_trf":
         return doc._.trf_data.tensors[1]
@@ -190,7 +191,7 @@ def compute_global_keyword_similarity(dict_i, dict_j, cutoff=False) -> float:
 
 
 def compute_keyword_matching_similarity_matrix(
-    docs: List[spacy.tokens.doc.Doc], cutoff=False
+    docs: t.List[Doc], cutoff=False
 ) -> np.ndarray:
     """
     Logic: Compute a >>keyword matching-based<< similarity matrix based on the embeddings of the inputs. Indexes of the results are consistens with the indexes of the original text inputs throughout the program.

@@ -2,6 +2,7 @@ from statistics import mean
 
 import numpy as np
 from arguebuf import AtomNode, Edge, Graph, SchemeNode
+from scipy.spatial.distance import cosine
 
 
 def add_branch(graph, node_source, node_target):
