@@ -1,1 +1,9 @@
+from .agglomerative import run as agglomerative
+from .flat import run as flat
+from .model import Relation as Relation
+from .model import Relations as Relations
+from .model import Result as Result
+from .order import run as order
+from .random import run as random
 from .recursive import run as recursive
+from .sim import run as sim

@@ -3,13 +3,8 @@ from pathlib import Path
 
 from typer import Typer
 
-from argmining_clustering import (
-    algs,
-    evaluation,
-    features,
-    reconstruction,
-    serialization,
-)
+from argmining_clustering import evaluation, features, reconstruction, serialization
+from argmining_clustering.runner import Runner
 
 app = Typer()
 PRESET_MC = False
@@ -27,17 +22,10 @@ def run(
 
         assert original_graph.major_claim is not None
         mc_index = id2index[original_graph.major_claim.id]
+        atom_nodes = list(original_graph.atom_nodes.values())
 
-        atom_docs = features.nlp(
-            [node.plain_text for node in original_graph.atom_nodes.values()]
-        )
-        atom_embeddings = [features.extract_embeddings(doc) for doc in atom_docs]
-        sim_matrix = features.compute_similarity_matrix(atom_embeddings)
-
-        clustering = algs.recursive(
-            dict(enumerate(atom_embeddings)),
-            atom_embeddings[mc_index] if PRESET_MC else None,
-        )
+        runner = Runner(atom_nodes, mc_index)
+        clustering = runner.recursive()
 
         reconstructed_graph = reconstruction.argument_graph(
             original_graph.atom_nodes, index2id, clustering
