@@ -193,14 +193,14 @@ def construct_from_clustering_with_MC_available(
         cluster_i, cluster_j = (clusters[i], clusters[j])
         anker_i, anker_j = (anker[i], anker[j])
 
-        ######### check if MJ in cluster i and j
-        # if majorclaim_in[i] then change bahvior else normal behavior
+        ######### check if MC in cluster i and j
+        # if majorclaim_in[i] then change behavior else normal behavior
 
         # merged_anker = anker_i if len(cluster_i) >= len(cluster_j) else anker_j
         new_cluster = clusters[i] + clusters[j]
 
         ######### make MC anker
-        # if majorclaim_in[i] then mke sure its anker
+        # if majorclaim_in[i] then make sure its anker
         if majorclaim_in[i] or majorclaim_in[j]:
 
             if majorclaim_in[i]:
