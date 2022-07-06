@@ -1,70 +1,14 @@
+import typing as t
 from statistics import mean
 
 import numpy as np
-from arguebuf import AtomNode, Edge, Graph, SchemeNode
+from argmining_clustering.algs.model import Relation, Result
 from scipy.spatial.distance import cosine
-
-
-def add_branch(graph, node_source, node_target):
-    node_scheme = SchemeNode()
-    graph.add_edge(Edge(source=node_source, target=node_scheme))
-    graph.add_edge(Edge(source=node_scheme, target=node_target))
+from spacy.tokens.doc import Doc
 
 
 def constraint_holds(target, source, k):
-
-    if abs(target - source) <= k:
-        return True
-    else:
-        return False
-
-
-def construct_from_order(MC, similarity_matrix, docs, k=2):
-
-    order = [i for i in range(len(docs))]
-
-    nodes = [AtomNode(docs[i].text) for i in range(len(docs))]
-
-    graph = Graph("Test")
-
-    connected = [MC]
-
-    unconnected = order
-    unconnected.remove(MC)
-
-    pairs = []
-    while unconnected != []:
-
-        for UC in unconnected:
-
-            pairs = []
-            for C in connected:
-
-                if constraint_holds(C, UC, k):
-
-                    sim = similarity_matrix[UC, C]
-                    pairs.append((C, sim))
-
-            if pairs == []:
-                continue
-            else:
-                pairs = sorted(pairs, key=lambda tupl: tupl[1], reverse=True)
-
-                target_position = pairs[0][0]
-
-                unconnected.remove(UC)
-
-                connected.append(UC)
-
-                target = nodes[target_position]
-
-                source = nodes[UC]
-
-                add_branch(graph, source, target)
-
-                break
-
-    return graph
+    return abs(target - source) <= k
 
 
 def compute_distances_between_members(cluster_i, cluster_j, similarity_matrix):
@@ -143,7 +87,7 @@ def compute_distances_between_clusters(clusters, similarity_matrix, mode, docs):
 def next_clusters(clusters, similarity_matrix, mode, docs):
 
     scores = compute_distances_between_clusters(clusters, similarity_matrix, mode, docs)
-    i, j = max(scores, key=scores.get)
+    i, j = max(scores, key=scores.get)  # type: ignore
 
     # use cluster_i to store old clusters and new clusters to know what happend in this step
     # so algorithm can decide what to do
@@ -170,23 +114,21 @@ def identify_target_node(cluster, query, similarity_matrix):
 
 # UNKNOWN MAJOR CLAIM
 def construct_from_clustering(clusters, similarity_matrix, docs, mode="average"):
-
-    nodes = [AtomNode(docs[i].text) for i in range(len(docs))]
     anker = [cluster[0] for cluster in clusters]
-
-    graph = Graph("Test")
+    relations = []
+    mc_index: t.Optional[int] = None
 
     # THIS ENABLES to start the clustering process with 2 elements per cluster if needed
     # [A,B] order is enforced for first branch connection from A (target) to B (source)
     for cluster in clusters:
 
         if len(cluster) == 2:
-            source = nodes[cluster[1]]
-            target = nodes[cluster[0]]
-            add_branch(graph, source, target)
+            source = cluster[1]
+            target = cluster[0]
+            relations.append(Relation(source, target))
+            mc_index = target
 
     while len(clusters) > 1:
-
         i, j = next_clusters(clusters, similarity_matrix, mode, docs)
 
         cluster_i, cluster_j = (clusters[i], clusters[j])
@@ -208,11 +150,12 @@ def construct_from_clustering(clusters, similarity_matrix, docs, mode="average")
             similarity_matrix=similarity_matrix,
         )
 
-        target = nodes[target_position]
+        target = target_position
+        source = source_anker
+        relations.append(Relation(source, target))
 
-        source = nodes[source_anker]
-
-        add_branch(graph, source, target)
+        if mc_index is None:
+            mc_index = target
 
         del clusters[j]
         del anker[j]
@@ -222,27 +165,26 @@ def construct_from_clustering(clusters, similarity_matrix, docs, mode="average")
         clusters.append(merged_cluster)
         anker.append(merged_anker)
 
-    return graph
+    return Result(mc_index or 0, relations)
 
 
 def construct_from_clustering_with_MC_available(
     clusters, MC, similarity_matrix, docs, mode="average"
 ):
 
-    nodes = [AtomNode(docs[i].text) for i in range(len(docs))]
     anker = [cluster[0] for cluster in clusters]
     majorclaim_in = [True if MC in cluster else False for cluster in clusters]
 
-    graph = Graph("Test")
+    relations = []
 
     # THIS ENABLES to start the clustering process with 2 elements per cluster if needed
     # [A,B] order is enforced for first branch connection from A (target) to B (source)
     for cluster in clusters:
 
         if len(cluster) == 2:
-            source = nodes[cluster[1]]
-            target = nodes[cluster[0]]
-            add_branch(graph, source, target)
+            source = cluster[1]
+            target = cluster[0]
+            relations.append(Relation(source, target))
 
     while len(clusters) > 1:
 
@@ -289,11 +231,9 @@ def construct_from_clustering_with_MC_available(
                 similarity_matrix=similarity_matrix,
             )
 
-        target = nodes[target_position]
-
-        source = nodes[source_anker]
-
-        add_branch(graph, source, target)
+        target = target_position
+        source = source_anker
+        relations.append(Relation(source, target))
 
         majorclaim_in.append(True if majorclaim_in[i] or majorclaim_in[j] else False)
 
@@ -307,4 +247,20 @@ def construct_from_clustering_with_MC_available(
         clusters.append(new_cluster)
         anker.append(new_anker)
 
-    return graph
+    return Result(MC, relations)
+
+
+def run(
+    docs: t.Sequence[Doc], sim_matrix: np.ndarray, mc_index: t.Optional[int] = None
+) -> Result:
+    # clusters: [[0], [1], [2], ..., [n]]
+    initial_clusters = [[i] for i in range(len(docs))]
+
+    if mc_index:
+        return construct_from_clustering_with_MC_available(
+            initial_clusters, mc_index, sim_matrix, mode="average", docs=docs
+        )
+
+    return construct_from_clustering(
+        initial_clusters, sim_matrix, mode="average", docs=docs
+    )

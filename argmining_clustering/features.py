@@ -38,7 +38,7 @@ def extract_embeddings(doc: Doc) -> np.ndarray:
         return doc._.trf_data.tensors[1]
 
     elif SPACY_MODEL in ["en_core_web_md", "en_core_web_lg"]:
-        return doc.vector
+        return doc.vector  # type: ignore
 
     raise ValueError(f"{SPACY_MODEL} does not have vectors")
 

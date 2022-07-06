@@ -1,6 +1,7 @@
 import typing as t
 
 import numpy as np
+from argmining_clustering.algs.model import Relation, Relations, Result
 from sklearn.cluster import KMeans
 from sklearn.metrics import pairwise_distances_argmin_min, silhouette_score
 from sklearn.preprocessing import normalize
@@ -10,13 +11,13 @@ MAX_LEAF_NODES = 3
 
 def run(
     nodes: t.Mapping[int, np.ndarray], centroid: t.Optional[np.ndarray] = None
-) -> t.Tuple[int, t.List[t.Tuple[int, int]]]:
+) -> Result:
     node_features = normalize(np.array(list(nodes.values())))
 
     if centroid is None:
         centroid = np.mean(node_features, axis=0)
 
-    relations: t.List[t.Tuple[int, int]] = []
+    relations: Relations = []
 
     node_ids = list(nodes.keys())
     claim_index, _ = pairwise_distances_argmin_min([centroid], node_features)
@@ -24,7 +25,9 @@ def run(
     premise_ids = [id for id in nodes.keys() if id != claim_id]
 
     if len(premise_ids) <= MAX_LEAF_NODES:
-        return claim_id, [(premise_id, claim_id) for premise_id in premise_ids]
+        return Result(
+            claim_id, [Relation(premise_id, claim_id) for premise_id in premise_ids]
+        )
 
     clustering: t.Dict[int, t.Any] = {}
     scores: t.Dict[int, float] = {}
@@ -45,11 +48,9 @@ def run(
         clustered_premise_ids = [
             id for id, label in zip(premise_ids, best_clustering.labels_) if label == i
         ]
-        clustered_claim_id, clustered_relations = run(
-            {id: nodes[id] for id in clustered_premise_ids}, nested_centroid
-        )
+        res = run({id: nodes[id] for id in clustered_premise_ids}, nested_centroid)
 
-        relations.extend(clustered_relations)
-        relations.append((clustered_claim_id, claim_id))
+        relations.extend(res.relations)
+        relations.append(Relation(res.mc, claim_id))
 
-    return claim_id, relations
+    return Result(claim_id, relations)

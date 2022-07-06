@@ -12,7 +12,7 @@ from argmining_clustering import (
 )
 
 app = Typer()
-PRESET_MC = false
+PRESET_MC = False
 
 
 @app.command()
@@ -34,13 +34,13 @@ def run(
         atom_embeddings = [features.extract_embeddings(doc) for doc in atom_docs]
         sim_matrix = features.compute_similarity_matrix(atom_embeddings)
 
-        mc_id, relations = algs.recursive(
+        clustering = algs.recursive(
             dict(enumerate(atom_embeddings)),
             atom_embeddings[mc_index] if PRESET_MC else None,
         )
 
         reconstructed_graph = reconstruction.argument_graph(
-            original_graph.atom_nodes, index2id, mc_id, relations
+            original_graph.atom_nodes, index2id, clustering
         )
         serialization.save(reconstructed_graph, output_folder / path, render=True)
 
