@@ -1,12 +1,15 @@
 import typing as t
+from collections import defaultdict
 from pathlib import Path
+from statistics import mean
 
-from typer import Typer
+import arguebuf as ag
+import typer
 
-from argmining_clustering import evaluation, features, reconstruction, serialization
+from argmining_clustering import evaluation, reconstruction, serialization
 from argmining_clustering.runner import Runner
 
-app = Typer()
+app = typer.Typer()
 PRESET_MC = False
 
 
@@ -14,9 +17,16 @@ PRESET_MC = False
 def run(
     input_pattern: str,
     input_folder: Path = Path("data", "input"),
-    output_folder: Path = Path("data", "output"),
+    output_folder: t.Optional[Path] = None,
 ):
+    global_eval: dict[str, dict[str, list[float]]] = defaultdict(
+        lambda: defaultdict(list)
+    )
+
     for path, original_graph in serialization.load(input_folder, input_pattern).items():
+        # For now, we do not consider the schemes between atom nodes during the evaluation
+        original_stripped_graph = original_graph.copy().strip_scheme_nodes()
+
         index2id = dict(enumerate(original_graph.atom_nodes))
         id2index = {v: k for k, v in index2id.items()}
 
@@ -25,18 +35,35 @@ def run(
         atom_nodes = list(original_graph.atom_nodes.values())
 
         runner = Runner(atom_nodes, mc_index)
-        clustering = runner.recursive()
+        local_eval = defaultdict(list)
 
-        reconstructed_graph = reconstruction.argument_graph(
-            original_graph.atom_nodes, index2id, clustering
-        )
-        serialization.save(reconstructed_graph, output_folder / path, render=True)
+        for method_name, method in runner.methods.items():
+            clustering = method()
+            reconstructed_graph = reconstruction.argument_graph(
+                original_graph.atom_nodes, index2id, clustering
+            )
 
-        # For now, we do not consider the schemes between atom nodes during the evaluation
-        original_graph.strip_snodes()
-        reconstructed_graph.strip_snodes()
+            if output_folder:
+                serialization.save(
+                    reconstructed_graph, output_folder / path, render=True
+                )
 
-        print(evaluation.jaccard(original_graph, reconstructed_graph))
+            reconstructed_graph.strip_scheme_nodes()
+            local_eval[method_name].append(
+                (original_stripped_graph, reconstructed_graph)
+            )
+
+        for clustering_name, values in local_eval.items():
+            avg = evaluation.avg(values)
+
+            for eval_func_name, eval_func_value in avg.items():
+                global_eval[clustering_name][eval_func_name].append(eval_func_value)
+
+    for clustering_name, eval in global_eval.items():
+        typer.echo(clustering_name)
+
+        for func_name, func_values in eval.items():
+            typer.echo(f"{func_name}={mean(func_values)}")
 
 
 if __name__ == "__main__":

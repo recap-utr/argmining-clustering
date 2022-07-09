@@ -1,5 +1,6 @@
 import typing as t
 from dataclasses import dataclass, field
+from inspect import getmembers, isfunction, ismethod
 
 import numpy as np
 from arguebuf import AtomNode
@@ -23,23 +24,29 @@ class Runner:
         ]
         self.sim_matrix = features.compute_similarity_matrix(self.atom_embeddings)
 
-    def agglomerative(self) -> algs.Result:
+    @property
+    def methods(self) -> t.Dict[str, t.Callable[[], algs.Result]]:
+        own_methods = (name for name in dir(self) if name.startswith("run_"))
+
+        return {name: getattr(self, name) for name in own_methods}
+
+    def run_agglomerative(self) -> algs.Result:
         return algs.agglomerative(self.atom_docs, self.sim_matrix, self.mc)
 
-    def flat(self) -> algs.Result:
+    def run_flat(self) -> algs.Result:
         return algs.flat(self.sim_matrix, self.mc)
 
-    def order(self) -> algs.Result:
+    def run_order(self) -> algs.Result:
         return algs.order(self.mc, self.sim_matrix, self.atom_docs)
 
-    def random(self) -> algs.Result:
+    def run_random(self) -> algs.Result:
         return algs.random(list(range(len(self.atom_nodes))), self.mc)
 
-    def recursive(self) -> algs.Result:
+    def run_recursive(self) -> algs.Result:
         return algs.recursive(
             dict(enumerate(self.atom_embeddings)),
             self.atom_embeddings[self.mc] if self.mc else None,
         )
 
-    def sim(self) -> algs.Result:
-        return algs.sim(self.sim_matrix, self.mc)
+    # def run_sim(self) -> algs.Result:
+    #     return algs.sim(self.sim_matrix, self.mc)

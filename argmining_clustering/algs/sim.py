@@ -10,6 +10,10 @@ def run(sim_matrix: np.ndarray, mc_index: t.Optional[int] = None) -> Result:
 
     relations = []
 
-    # TODO
+    assigned_indices = [mc_index]
+    remaining_indices = [i for i in range(sim_matrix.shape[0]) if i != mc_index]
+
+    while len(remaining_indices) > 0:
+        pass
 
     return Result(mc_index, relations)
