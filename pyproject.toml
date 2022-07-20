@@ -5,7 +5,7 @@ description = ""
 authors = ["Mirko Lenz <info@mirko-lenz.de>"]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.11"
+python = ">=3.9,<3.11"
 arguebuf = "^1.0.0"
 scikit-learn = "^1.1.1"
 typer = "^0.4.1"
@@ -16,6 +16,7 @@ nltk = "^3.7"
 spacy = "^3.3.1"
 textacy = "^0.12.0"
 graphkit-learn = "^0.2.0"
+graphmatch = {git = "https://github.com/recap-utr/graphmatch.git"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

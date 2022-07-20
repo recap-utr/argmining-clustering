@@ -35,7 +35,9 @@ def run(
         atom_nodes = list(original_graph.atom_nodes.values())
 
         runner = Runner(atom_nodes, mc_index)
-        local_eval = defaultdict(list)
+        local_eval: defaultdict[str, list[tuple[ag.Graph, ag.Graph]]] = defaultdict(
+            list
+        )
 
         for method_name, method in runner.methods.items():
             clustering = method()

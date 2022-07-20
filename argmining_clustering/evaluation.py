@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from statistics import mean
 
 import arguebuf as ag
+import graphmatch as gm
 import networkx as nx
 from gklearn.ged.env import GEDEnv
 from sklearn.metrics import jaccard_score
@@ -26,7 +27,7 @@ def edit_ged(graph1: ag.Graph, graph2: ag.Graph) -> float:
     """https://github.com/jajupmochi/graphkit-learn/blob/master/gklearn/examples/ged/compute_graph_edit_distance.py"""
 
     ged_env = GEDEnv()
-    ged_env.set_edit_cost("CONSTANT", edit_cost_constants=[])
+    ged_env.set_edit_cost("CONSTANT", edit_cost_constants=[1, 1, 1, 1, 1, 1])
     ged_env.add_nx_graph(graph1.to_nx(**NX_OPT), "")
     ged_env.add_nx_graph(graph2.to_nx(**NX_OPT), "")
 
@@ -49,6 +50,17 @@ def edit_ged(graph1: ag.Graph, graph2: ag.Graph) -> float:
     print(dis)
 
     return dis
+
+
+def edit_gm(graph1: ag.Graph, graph2: ag.Graph) -> float:
+    nx1 = graph1.to_nx(**NX_OPT)
+    nx2 = graph2.to_nx(**NX_OPT)
+
+    ged = gm.GraphEditDistance(1, 1, 1, 1)
+    ged.set_attr_graph_used("label", None)
+    result = ged.compare([nx1, nx2], None)
+
+    return ged.similarity(result)
 
 
 def edit_nx(graph1: ag.Graph, graph2: ag.Graph) -> float:
@@ -85,4 +97,4 @@ def jaccard(graph1: ag.Graph, graph2: ag.Graph) -> float:
     )
 
 
-FUNCTIONS = [jaccard]
+FUNCTIONS = [jaccard, edit_gm]
