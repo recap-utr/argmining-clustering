@@ -273,7 +273,7 @@ tqdm = "^4.64.0"
 [package.source]
 type = "git"
 url = "https://github.com/recap-utr/graphmatch.git"
-reference = "master"
+reference = "0afb61d"
 resolved_reference = "0afb61d829332b3b682352ba609b0c4e2a2fc3af"
 
 [[package]]
@@ -1056,7 +1056,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.11"
-content-hash = "6fdd3a4eea0e45460dc8727b09c91238e46e98071662389906742091a78063d2"
+content-hash = "f8967067147ba1d6b9118b67b2f2581bd19756cb39e7c53076de94abfac37a59"
 
 [metadata.files]
 arg-services = [
