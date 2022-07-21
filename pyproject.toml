@@ -16,7 +16,7 @@ nltk = "^3.7"
 spacy = "^3.3.1"
 textacy = "^0.12.0"
 graphkit-learn = "^0.2.0"
-graphmatch = { git = "https://github.com/recap-utr/graphmatch.git", rev = "0afb61d" }
+graphmatch = {git = "https://github.com/recap-utr/graphmatch.git"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
