@@ -60,8 +60,9 @@ def edit_gm(graph1: ag.Graph, graph2: ag.Graph) -> float:
     nx2 = graph2.to_nx(**NX_OPT)
 
     ged = gm.GraphEditDistance(1, 1, 1, 1)
-    ged.set_attr_graph_used("label", "")
+    # ged.set_attr_graph_used("label", "")
     operations: npt.NDArray[np.float_] = ged.compare([nx1, nx2], None)
+    print(operations)
 
     # masked_operations: npt.NDArray[np.float_] = np.ma.masked_equal(
     #     operations, 0.0, copy=False
@@ -69,11 +70,13 @@ def edit_gm(graph1: ag.Graph, graph2: ag.Graph) -> float:
     # return masked_operations.min()
 
     # Return the minimum number that is NOT 0
+    dist = 0.0
+
     try:
         return np.min(operations[np.nonzero(operations)])
+
     except ValueError:
-        print(f"Graphs '{graph1.name}' and '{graph2.name}' have a distance of 0.")
-        return 0.0
+        return error("edit_ged", graph1, graph2)
 
 
 def edit_nx(graph1: ag.Graph, graph2: ag.Graph) -> float:
