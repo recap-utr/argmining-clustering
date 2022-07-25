@@ -56,18 +56,16 @@ def run(
             )
 
         for clustering_name, values in local_eval.items():
-            avg = evaluation.avg(values)
+            avg = evaluation.avg(clustering_name, values)
 
             for eval_func_name, eval_func_value in avg.items():
                 global_eval[clustering_name][eval_func_name].append(eval_func_value)
 
     for clustering_name, eval in global_eval.items():
-        typer.echo(clustering_name)
+        typer.echo(f"{clustering_name}:")
 
         for func_name, func_values in eval.items():
-            typer.echo(f"{func_name}={mean(func_values)}")
-
-        typer.echo()
+            typer.echo(f"\t{func_name}={mean(func_values)}")
 
 
 if __name__ == "__main__":
