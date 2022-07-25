@@ -19,7 +19,7 @@ def error(metric: str, graph1: ag.Graph, graph2: ag.Graph) -> float:
     print(
         f"Cannot compute distance '{metric}' for graphs '{graph1.name}' and '{graph2.name}'."
     )
-    return max(len(graph1.nodes), len(graph2.nodes))
+    return len(graph1.nodes) + len(graph2.nodes)
 
 
 def avg(graphs: t.List[t.Tuple[ag.Graph, ag.Graph]]) -> dict[str, float]:
