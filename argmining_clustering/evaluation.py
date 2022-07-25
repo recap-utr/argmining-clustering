@@ -7,6 +7,8 @@ import graphmatch as gm
 import networkx as nx
 import numpy as np
 import numpy.typing as npt
+from gklearn.ged.env import GEDEnv
+from gklearn.ged.env import Options as GEDOptions
 from sklearn.metrics import jaccard_score
 from sklearn.preprocessing import MultiLabelBinarizer
 
@@ -27,33 +29,30 @@ def avg(graphs: t.List[t.Tuple[ag.Graph, ag.Graph]]) -> dict[str, float]:
     }
 
 
-# def edit_ged(graph1: ag.Graph, graph2: ag.Graph) -> float:
-#     """https://github.com/jajupmochi/graphkit-learn/blob/master/gklearn/examples/ged/compute_graph_edit_distance.py"""
+def edit_ged(graph1: ag.Graph, graph2: ag.Graph) -> float:
+    """https://github.com/jajupmochi/graphkit-learn/blob/master/gklearn/examples/ged/compute_graph_edit_distance.py"""
 
-#     ged_env = GEDEnv()
-#     ged_env.set_edit_cost("CONSTANT", edit_cost_constants=[1, 1, 1, 1, 1, 1])
-#     ged_env.add_nx_graph(graph1.to_nx(**NX_OPT), "")
-#     ged_env.add_nx_graph(graph2.to_nx(**NX_OPT), "")
+    try:
+        ged_env = GEDEnv()
+        ged_env.set_edit_cost("CONSTANT", edit_cost_constants=[])
+        g1 = ged_env.add_nx_graph(graph1.to_nx(), "")
+        g2 = ged_env.add_nx_graph(graph2.to_nx(), "")
 
-#     listID = ged_env.get_all_graph_ids()
-#     ged_env.init(init_type="LAZY_WITHOUT_SHUFFLED_COPIES")  # type: ignore
-#     options = {
-#         "initialization_method": "RANDOM",
-#         "threads": 1,
-#     }
-#     ged_env.set_method("BIPARTITE", options)  # type: ignore
-#     ged_env.init_method()
+        ged_env.init(init_type=GEDOptions.InitType.LAZY_WITHOUT_SHUFFLED_COPIES)
+        options = {
+            # "initialization_method": "RANDOM",
+            # "threads": 1,
+        }
+        ged_env.set_method(GEDOptions.GEDMethod.BIPARTITE, options)  # type: ignore
+        ged_env.init_method()
+        ged_env.run_method(g1, g2)
 
-#     ged_env.run_method(listID[0], listID[1])
+        pi_forward = ged_env.get_forward_map(g1, g2)
+        pi_backward = ged_env.get_backward_map(g1, g2)
+        return ged_env.get_upper_bound(g1, g2)
 
-#     pi_forward = ged_env.get_forward_map(listID[0], listID[1])
-#     pi_backward = ged_env.get_backward_map(listID[0], listID[1])
-#     dis = ged_env.get_upper_bound(listID[0], listID[1])
-#     print(pi_forward)
-#     print(pi_backward)
-#     print(dis)
-
-#     return dis
+    except ValueError:
+        return error("edit_ged", graph1, graph2)
 
 
 def edit_gm(graph1: ag.Graph, graph2: ag.Graph) -> float:
@@ -111,4 +110,4 @@ def jaccard(graph1: ag.Graph, graph2: ag.Graph) -> float:
     )
 
 
-FUNCTIONS = [jaccard, edit_gm]
+FUNCTIONS = [edit_ged, jaccard, edit_gm]
