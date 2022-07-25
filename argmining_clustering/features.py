@@ -256,3 +256,39 @@ def compute_keyword_matching_similarity_matrix(
                 sim_matrix[j, i] = sim
 
     return sim_matrix
+
+
+def find_keyword_span(doc, keyword):
+    # TODO: refactor as "find_words_span" as the method can be used in other packages too
+    # if keyword is compound, we need to identify start and end otherwise start == end
+
+    keyword_components = keyword.lower().split(" ")
+    k = len(keyword_components)
+
+    words = [doc[i].text.lower() for i in range(len(doc))]
+    n = len(words)
+
+    indexes = [
+        index for index, word in enumerate(words) if word == (keyword_components[0])
+    ]
+
+    if indexes == []:
+        raise Exception(words, keyword)
+
+    for index in indexes:
+        start = index
+        end = None
+
+        # check if word is part of compound key word or single occurence, e.g. health insurance
+        for i in range(0, k):
+            if words[index + i] == keyword_components[i]:
+                if i == k - 1:
+                    end = index + i + 1
+            else:
+                break
+
+        # exit loop on first hit
+        if end != None:
+            break
+
+    return keyword, start, end

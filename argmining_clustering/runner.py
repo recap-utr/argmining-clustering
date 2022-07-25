@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from inspect import getmembers, isfunction, ismethod
 
 import numpy as np
+import numpy.typing as npt
 from arguebuf import AtomNode
 from spacy.tokens.doc import Doc
 
@@ -14,8 +15,9 @@ class Runner:
     atom_nodes: t.List[AtomNode]
     mc: t.Optional[int]
     atom_docs: t.List[Doc] = field(init=False)
-    atom_embeddings: t.List[np.ndarray] = field(init=False)
-    sim_matrix: np.ndarray = field(init=False)
+    atom_embeddings: t.List[npt.NDArray[np.float_]] = field(init=False)
+    sim_matrix: npt.NDArray[np.float_] = field(init=False)
+    keyword_matrix: npt.NDArray[np.float_] = field(init=False)
 
     def __post_init__(self) -> None:
         self.atom_docs = features.nlp([node.plain_text for node in self.atom_nodes])
@@ -23,21 +25,30 @@ class Runner:
             features.extract_embeddings(doc) for doc in self.atom_docs
         ]
         self.sim_matrix = features.compute_similarity_matrix(self.atom_embeddings)
+        self.keyword_matrix = features.compute_keyword_matching_similarity_matrix(
+            self.atom_docs
+        )
 
     @property
     def methods(self) -> t.Dict[str, t.Callable[[], algs.Result]]:
         own_methods = (name for name in dir(self) if name.startswith("run_"))
 
-        return {name: getattr(self, name) for name in own_methods}
+        return {name.removeprefix("run_"): getattr(self, name) for name in own_methods}
 
     def run_agglomerative(self) -> algs.Result:
         return algs.agglomerative(self.atom_docs, self.sim_matrix, self.mc)
 
-    def run_flat(self) -> algs.Result:
-        return algs.flat(self.sim_matrix, self.mc)
+    def run_agglomerative_kw(self) -> algs.Result:
+        return algs.agglomerative(self.atom_docs, self.keyword_matrix, self.mc)
 
     def run_order(self) -> algs.Result:
         return algs.order(self.mc, self.sim_matrix, self.atom_docs)
+
+    def run_order_kw(self) -> algs.Result:
+        return algs.order(self.mc, self.keyword_matrix, self.atom_docs)
+
+    def run_flat(self) -> algs.Result:
+        return algs.flat(self.sim_matrix, self.mc)
 
     def run_random(self) -> algs.Result:
         return algs.random(list(range(len(self.atom_nodes))), self.mc)
