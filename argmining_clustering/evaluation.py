@@ -17,7 +17,7 @@ NX_OPT = {"atom_attrs": {"label": lambda x: x.id}}
 
 def error(metric: str, graph1: ag.Graph, graph2: ag.Graph) -> float:
     print(
-        f"Cannot compute distance '{metric}' for graphs '{graph1.name}' and '{graph2.name}'."
+        f"Cannot compute distance '{metric}' for graphs '{graph1.name}' ({len(graph1.nodes)} nodes) and '{graph2.name}' ({len(graph2.nodes)} nodes)."
     )
     return len(graph1.nodes) + len(graph2.nodes)
 
@@ -47,8 +47,9 @@ def edit_ged(graph1: ag.Graph, graph2: ag.Graph) -> float:
         ged_env.init_method()
         ged_env.run_method(g1, g2)
 
-        pi_forward = ged_env.get_forward_map(g1, g2)
-        pi_backward = ged_env.get_backward_map(g1, g2)
+        ged_env.get_forward_map(g1, g2)
+        ged_env.get_backward_map(g1, g2)
+
         return ged_env.get_upper_bound(g1, g2)
 
     except ValueError:
@@ -62,7 +63,6 @@ def edit_gm(graph1: ag.Graph, graph2: ag.Graph) -> float:
     ged = gm.GraphEditDistance(1, 1, 1, 1)
     # ged.set_attr_graph_used("label", "")
     operations: npt.NDArray[np.float_] = ged.compare([nx1, nx2], None)
-    print(operations)
 
     # masked_operations: npt.NDArray[np.float_] = np.ma.masked_equal(
     #     operations, 0.0, copy=False
@@ -70,13 +70,12 @@ def edit_gm(graph1: ag.Graph, graph2: ag.Graph) -> float:
     # return masked_operations.min()
 
     # Return the minimum number that is NOT 0
-    dist = 0.0
 
     try:
         return np.min(operations[np.nonzero(operations)])
 
     except ValueError:
-        return error("edit_ged", graph1, graph2)
+        return error("edit_gm", graph1, graph2)
 
 
 def edit_nx(graph1: ag.Graph, graph2: ag.Graph) -> float:
