@@ -18,14 +18,14 @@ PRESET_MC = False
 
 @app.command()
 def run(
-    input_pattern: str,
+    input_patterns: t.List[str],
     input_folder: Path = Path("data", "input"),
     output_folder: t.Optional[Path] = None,
 ):
     global_eval: dict[str, dict[str, list[float]]] = defaultdict(
         lambda: defaultdict(list)
     )
-    cases = serialization.load(input_folder, input_pattern)
+    cases = serialization.load(input_folder, input_patterns)
 
     for path, original_graph in track(cases.items()):
         # For now, we do not consider the schemes between atom nodes during the evaluation
