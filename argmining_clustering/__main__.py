@@ -5,6 +5,9 @@ from statistics import mean
 
 import arguebuf as ag
 import typer
+from rich import print
+from rich.progress import track
+from rich.table import Table
 
 from argmining_clustering import evaluation, reconstruction, serialization
 from argmining_clustering.runner import Runner
@@ -22,8 +25,9 @@ def run(
     global_eval: dict[str, dict[str, list[float]]] = defaultdict(
         lambda: defaultdict(list)
     )
+    cases = serialization.load(input_folder, input_pattern)
 
-    for path, original_graph in serialization.load(input_folder, input_pattern).items():
+    for path, original_graph in track(cases.items()):
         # For now, we do not consider the schemes between atom nodes during the evaluation
         original_stripped_graph = original_graph.copy().strip_scheme_nodes()
 
@@ -61,11 +65,14 @@ def run(
             for eval_func_name, eval_func_value in avg.items():
                 global_eval[clustering_name][eval_func_name].append(eval_func_value)
 
-    for clustering_name, eval in global_eval.items():
-        typer.echo(f"{clustering_name}:")
+    funcs = sorted([func.__name__ for func in evaluation.FUNCTIONS])
+    table = Table("method", *funcs)
 
-        for func_name, func_values in eval.items():
-            typer.echo(f"\t{func_name}={mean(func_values)}")
+    for clustering_name, eval in global_eval.items():
+        values = ["{:.3f}".format(mean(eval[func])) for func in funcs]
+        table.add_row(clustering_name, *values)
+
+    print(table)
 
 
 if __name__ == "__main__":

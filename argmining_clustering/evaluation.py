@@ -9,6 +9,7 @@ import numpy as np
 import numpy.typing as npt
 from gklearn.ged.env import GEDEnv
 from gklearn.ged.env import Options as GEDOptions
+from rich import print
 from sklearn.metrics import jaccard_score
 from sklearn.preprocessing import MultiLabelBinarizer
 
@@ -16,7 +17,7 @@ NX_OPT = {"atom_attrs": {"label": lambda x: x.id}}
 
 
 def error(method: str, metric: str, graph1: ag.Graph, graph2: ag.Graph) -> float:
-    print(f"{method}: Error for {metric}({graph1.name}, {graph2.name})")
+    # print(f"[b]{method}:[/b] Error for {metric}({graph1.name}, {graph2.name})")
     return 0.0
 
 

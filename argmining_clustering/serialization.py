@@ -7,7 +7,7 @@ import arguebuf
 def load(input_folder: Path, input_pattern: str) -> t.Dict[Path, arguebuf.Graph]:
     return {
         input_file.relative_to(input_folder): arguebuf.Graph.from_file(input_file)
-        for input_file in input_folder.glob(input_pattern)
+        for input_file in sorted(input_folder.glob(input_pattern))
     }
 
 

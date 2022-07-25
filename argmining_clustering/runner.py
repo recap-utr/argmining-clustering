@@ -4,7 +4,7 @@ from inspect import getmembers, isfunction, ismethod
 
 import numpy as np
 import numpy.typing as npt
-from arguebuf import AtomNode
+from arguebuf import AtomNode, Graph
 from spacy.tokens.doc import Doc
 
 from argmining_clustering import algs, features
@@ -25,27 +25,36 @@ class Runner:
             features.extract_embeddings(doc) for doc in self.atom_docs
         ]
         self.sim_matrix = features.compute_similarity_matrix(self.atom_embeddings)
-        self.keyword_matrix = features.compute_keyword_matching_similarity_matrix(
-            self.atom_docs
-        )
+
+        if any(method_name.endswith("_kw") for method_name in self.method_names()):
+            self.keyword_matrix = features.compute_keyword_matching_similarity_matrix(
+                self.atom_docs
+            )
+        else:
+            self.keyword_matrix = np.array([])
+
+    @classmethod
+    def method_names(cls) -> t.List[str]:
+        return [name for name in dir(cls) if name.startswith("run_")]
 
     @property
     def methods(self) -> t.Dict[str, t.Callable[[], algs.Result]]:
-        own_methods = (name for name in dir(self) if name.startswith("run_"))
-
-        return {name.removeprefix("run_"): getattr(self, name) for name in own_methods}
+        return {
+            name.removeprefix("run_"): getattr(self, name)
+            for name in self.method_names()
+        }
 
     def run_agglomerative(self) -> algs.Result:
         return algs.agglomerative(self.atom_docs, self.sim_matrix, self.mc)
 
-    def run_agglomerative_kw(self) -> algs.Result:
-        return algs.agglomerative(self.atom_docs, self.keyword_matrix, self.mc)
+    # def run_agglomerative_kw(self) -> algs.Result:
+    #     return algs.agglomerative(self.atom_docs, self.keyword_matrix, self.mc)
 
     def run_order(self) -> algs.Result:
         return algs.order(self.mc, self.sim_matrix, self.atom_docs)
 
-    def run_order_kw(self) -> algs.Result:
-        return algs.order(self.mc, self.keyword_matrix, self.atom_docs)
+    # def run_order_kw(self) -> algs.Result:
+    #     return algs.order(self.mc, self.keyword_matrix, self.atom_docs)
 
     def run_flat(self) -> algs.Result:
         return algs.flat(self.sim_matrix, self.mc)
