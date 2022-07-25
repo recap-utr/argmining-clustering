@@ -34,8 +34,10 @@ def run(
         index2id = dict(enumerate(original_graph.atom_nodes))
         id2index = {v: k for k, v in index2id.items()}
 
-        assert original_graph.major_claim is not None
-        mc_index = id2index[original_graph.major_claim.id]
+        mc = original_graph.major_claim or original_graph.root_node
+        assert mc is not None
+
+        mc_index = id2index[mc.id]
         atom_nodes = list(original_graph.atom_nodes.values())
 
         runner = Runner(atom_nodes, mc_index)
