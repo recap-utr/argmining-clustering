@@ -67,6 +67,8 @@ def run(
         for func_name, func_values in eval.items():
             typer.echo(f"{func_name}={mean(func_values)}")
 
+        typer.echo()
+
 
 if __name__ == "__main__":
     app()
