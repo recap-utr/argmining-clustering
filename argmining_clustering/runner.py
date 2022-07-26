@@ -68,5 +68,5 @@ class Runner:
             self.atom_embeddings[self.mc] if self.mc else None,
         )
 
-    # def run_sim(self) -> algs.Result:
-    #     return algs.sim(self.sim_matrix, self.mc)
+    def run_sim(self) -> algs.Result:
+        return algs.sim(self.sim_matrix, self.mc)
