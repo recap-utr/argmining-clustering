@@ -11,6 +11,7 @@ def run(nodes: t.List[int], mc_index: t.Optional[int] = None) -> Result:
         mc_index = random.choice(nodes)
 
     sampled_nodes = [mc_index]
+    nodes.remove(mc_index)
     relations: Relations = []
 
     while len(nodes) > 0:
