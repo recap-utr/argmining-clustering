@@ -1,4 +1,5 @@
 import typing as t
+import warnings
 from pathlib import Path
 
 import arguebuf
@@ -10,11 +11,14 @@ from spacy.tokens.doc import Doc
 from textacy.extract.keyterms.yake import yake
 
 parse: t.Optional[Language] = None
+SPACY_MODEL: str = ""
 
 
 def load_spacy(model: str) -> None:
     global parse
+    global SPACY_MODEL
     parse = spacy.load(model)
+    SPACY_MODEL = model
 
 
 # def embeddings(atoms: t.Mapping[str, arguebuf.AtomNode]) -> t.Dict[str, np.ndarray]:
@@ -35,13 +39,17 @@ def load_spacy(model: str) -> None:
 
 def nlp(texts: t.Iterable[str]) -> t.List[Doc]:
     assert parse is not None
-    return list(parse.pipe(texts))
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+
+        return list(parse.pipe(texts))
 
 
 def extract_embeddings(doc: Doc) -> np.ndarray:
 
     if SPACY_MODEL == "en_core_web_trf":
-        return doc._.trf_data.tensors[1]
+        return doc._.trf_data.tensors[1].flatten()
 
     elif SPACY_MODEL in ["en_core_web_md", "en_core_web_lg"]:
         return doc.vector  # type: ignore
