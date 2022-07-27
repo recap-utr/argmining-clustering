@@ -1,5 +1,5 @@
 import typing as t
-from dataclasses import dataclass, field
+from dataclasses import InitVar, dataclass, field
 from inspect import getmembers, isfunction, ismethod
 
 import numpy as np
@@ -14,17 +14,21 @@ from argmining_clustering import algs, features
 class Runner:
     atom_nodes: t.List[AtomNode]
     mc: t.Optional[int]
+    invert_sim: InitVar[bool]
     atom_docs: t.List[Doc] = field(init=False)
     atom_embeddings: t.List[npt.NDArray[np.float_]] = field(init=False)
     sim_matrix: npt.NDArray[np.float_] = field(init=False)
     keyword_matrix: npt.NDArray[np.float_] = field(init=False)
 
-    def __post_init__(self) -> None:
+    def __post_init__(self, invert_sim) -> None:
         self.atom_docs = features.nlp([node.plain_text for node in self.atom_nodes])
         self.atom_embeddings = [
             features.extract_embeddings(doc) for doc in self.atom_docs
         ]
         self.sim_matrix = features.compute_similarity_matrix(self.atom_embeddings)
+
+        if invert_sim:
+            self.sim_matrix = 1.0 - self.sim_matrix
 
         if any(method_name.endswith("_kw") for method_name in self.method_names()):
             self.keyword_matrix = features.compute_keyword_matching_similarity_matrix(

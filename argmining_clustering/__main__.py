@@ -9,11 +9,10 @@ from rich import print
 from rich.progress import track
 from rich.table import Table
 
-from argmining_clustering import evaluation, reconstruction, serialization
+from argmining_clustering import evaluation, features, reconstruction, serialization
 from argmining_clustering.runner import Runner
 
 app = typer.Typer()
-PRESET_MC = False
 
 
 @app.command()
@@ -21,7 +20,11 @@ def run(
     input_patterns: t.List[str],
     input_folder: Path = Path("data", "input"),
     output_folder: t.Optional[Path] = None,
+    preset_mc: bool = True,
+    invert_sim: bool = False,
+    model: str = "en_core_web_lg",
 ):
+    features.load_spacy(model)
     global_eval: dict[str, dict[str, list[float]]] = defaultdict(
         lambda: defaultdict(list)
     )
@@ -37,10 +40,10 @@ def run(
         mc = original_graph.major_claim or original_graph.root_node
         assert mc is not None
 
-        mc_index = id2index[mc.id]
+        mc_index = id2index[mc.id] if preset_mc else None
         atom_nodes = list(original_graph.atom_nodes.values())
 
-        runner = Runner(atom_nodes, mc_index)
+        runner = Runner(atom_nodes, mc_index, invert_sim)
         local_eval: defaultdict[str, list[tuple[ag.Graph, ag.Graph]]] = defaultdict(
             list
         )

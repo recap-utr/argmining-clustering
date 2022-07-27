@@ -39,7 +39,7 @@ def run(
         features = normalize(np.array([nodes[id] for id in premise_ids]))
         curr_cluster = KMeans(n_clusters=n_clusters, random_state=0).fit(features)
         clustering[n_clusters] = curr_cluster
-        scores[n_clusters] = silhouette_score(features, curr_cluster.labels_)
+        scores[n_clusters] = silhouette_score(features, curr_cluster.labels_)  # type: ignore
 
     best_n_clusters = max(scores.items(), key=lambda x: x[1])[0]
     best_clustering = clustering[best_n_clusters]

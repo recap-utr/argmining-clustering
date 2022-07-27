@@ -5,11 +5,16 @@ import arguebuf
 import numpy as np
 import spacy
 from scipy.spatial.distance import cosine
+from spacy.language import Language
 from spacy.tokens.doc import Doc
 from textacy.extract.keyterms.yake import yake
 
-SPACY_MODEL = "en_core_web_lg"
-parse = spacy.load(SPACY_MODEL)
+parse: t.Optional[Language] = None
+
+
+def load_spacy(model: str) -> None:
+    global parse
+    parse = spacy.load(model)
 
 
 # def embeddings(atoms: t.Mapping[str, arguebuf.AtomNode]) -> t.Dict[str, np.ndarray]:
@@ -29,6 +34,7 @@ parse = spacy.load(SPACY_MODEL)
 
 
 def nlp(texts: t.Iterable[str]) -> t.List[Doc]:
+    assert parse is not None
     return list(parse.pipe(texts))
 
 
