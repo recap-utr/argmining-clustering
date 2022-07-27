@@ -13,12 +13,13 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# RUN apt update && \
-#     apt install -y curl && \
-#     rm -rf /var/lib/apt/lists/* && \
-RUN curl -sSL https://install.python-poetry.org | python - \
+RUN apt update && \
+    apt install -y graphviz && \
+    rm -rf /var/lib/apt/lists/* && \
+    curl -sSL https://install.python-poetry.org | python - \
     && poetry config virtualenvs.create false
 
 COPY poetry.lock* pyproject.toml ./
 RUN poetry install --no-interaction --no-ansi --no-root \
-    && poetry run python -m spacy download en_core_web_lg
+    && poetry run python -m spacy download en_core_web_lg \
+    && poetry run python -m spacy download en_core_web_trf
