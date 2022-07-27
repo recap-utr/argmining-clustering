@@ -20,7 +20,7 @@ def run(
     input_patterns: t.List[str],
     input_folder: Path = Path("data", "input"),
     output_folder: t.Optional[Path] = None,
-    preset_mc: bool = True,
+    predict_mc: bool = False,
     invert_sim: bool = False,
     model: str = "en_core_web_lg",
 ):
@@ -40,7 +40,7 @@ def run(
         mc = original_graph.major_claim or original_graph.root_node
         assert mc is not None
 
-        mc_index = id2index[mc.id] if preset_mc else None
+        mc_index = None if predict_mc else id2index[mc.id]
         atom_nodes = list(original_graph.atom_nodes.values())
 
         runner = Runner(atom_nodes, mc_index, invert_sim)
