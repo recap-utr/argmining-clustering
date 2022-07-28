@@ -20,7 +20,9 @@ def run(
     relations: Relations = []
 
     node_ids = list(nodes.keys())
-    claim_index, _ = pairwise_distances_argmin_min([centroid], node_features)
+    claim_index, _ = pairwise_distances_argmin_min(
+        [centroid], node_features, metric="cosine"
+    )
     claim_id = node_ids[claim_index[0]]
     premise_ids = [id for id in nodes.keys() if id != claim_id]
 
