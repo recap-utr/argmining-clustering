@@ -15,7 +15,7 @@ def compute_MC_sim_order(MC, similarity_matrix, docs):
     sim_loc_pair = [x for x in zip(similarity_matrix[MC], list(range(len(docs))))]
 
     sorted_sim_pos_pairs = sorted(sim_loc_pair, key=lambda tupl: tupl[0], reverse=True) 
-    del sorted_sim_pos_pairs[0] # first sim loc is 1.0 to MC, thus remove
+    #del sorted_sim_pos_pairs[0] # first sim loc is 1.0 to MC, thus remove
     
     order = [position for (sim, position) in sorted_sim_pos_pairs]
     
