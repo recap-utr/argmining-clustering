@@ -1,18 +1,20 @@
 import typing as t
 
 import numpy as np
+import numpy.typing as npt
 from argmining_clustering.algs.model import Relation, Relations, Result
 from sklearn.cluster import KMeans
-from sklearn.metrics import pairwise_distances_argmin_min, silhouette_score
+from sklearn.metrics import pairwise_distances_argmin, silhouette_score
 from sklearn.preprocessing import normalize
 
 MAX_LEAF_NODES = 3
 
 
 def run(
-    nodes: t.Mapping[int, np.ndarray], centroid: t.Optional[np.ndarray] = None
+    nodes: t.Mapping[int, npt.NDArray[np.float_]],
+    centroid: t.Optional[npt.NDArray[np.float_]] = None,
 ) -> Result:
-    node_features = normalize(np.array(list(nodes.values())))
+    node_features = np.array(list(nodes.values()))
 
     if centroid is None:
         centroid = np.mean(node_features, axis=0)
@@ -20,9 +22,7 @@ def run(
     relations: Relations = []
 
     node_ids = list(nodes.keys())
-    claim_index, _ = pairwise_distances_argmin_min(
-        [centroid], node_features, metric="cosine"
-    )
+    claim_index = pairwise_distances_argmin([centroid], node_features, metric="cosine")
     claim_id = node_ids[claim_index[0]]
     premise_ids = [id for id in nodes.keys() if id != claim_id]
 

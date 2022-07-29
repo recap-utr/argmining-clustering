@@ -69,7 +69,7 @@ class Runner:
     def run_centroid(self) -> algs.Result:
         return algs.centroid(
             dict(enumerate(self.atom_embeddings)),
-            self.atom_embeddings[self.mc] if self.mc else None,
+            self.atom_embeddings[self.mc] if self.mc is not None else None,
         )
 
     def run_sim(self) -> algs.Result:
