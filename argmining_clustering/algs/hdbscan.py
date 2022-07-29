@@ -50,6 +50,11 @@ def run(sim_matrix: npt.NDArray[np.float_], mc_index: t.Optional[int]) -> Result
 
         clusters[primary_cluster].add(mc_index)
 
+        # When moving the major claim, it may happen that another cluster is empty
+        for key in set(clusters.keys()):
+            if len(clusters[key]) == 0:
+                del clusters[key]
+
     for cluster_id, adus in sorted(clusters.items(), key=lambda x: x[0]):
         claim: int
 
