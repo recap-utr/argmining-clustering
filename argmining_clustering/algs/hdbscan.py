@@ -29,19 +29,31 @@ def run(sim_matrix: npt.NDArray[np.float_], mc_index: t.Optional[int]) -> Result
     # [(CLUSTER_ID, ADU_ID_OR_CLUSTER_ID), ...]
 
     clusters: defaultdict[int, set[int]] = defaultdict(set)
-    cluster_connections: dict[int, int] = {}
+    cluster_connections = nx.DiGraph()
     cluster_claims: dict[int, int] = {}
 
     for edge in g.edges():
-        if edge[1] < num_adus:
-            clusters[edge[0]].add(edge[1])
-        else:
-            cluster_connections[edge[1]] = edge[0]
+        cluster_id = edge[0]
+        adu_id = edge[1]
 
-    for cluster_id, adus in clusters.items():
+        if adu_id < num_adus:
+            clusters[cluster_id].add(adu_id)
+        else:
+            cluster_connections.add_edge(adu_id, cluster_id)
+
+    primary_cluster = min(clusters.keys())
+
+    # If the major claim is given, we have to manipulate the result of the algorithm
+    if mc_index is not None:
+        for entry in clusters.items():
+            entry[1].discard(mc_index)
+
+        clusters[primary_cluster].add(mc_index)
+
+    for cluster_id, adus in sorted(clusters.items(), key=lambda x: x[0]):
         claim: int
 
-        if mc_index and mc_index in adus:
+        if mc_index is not None and cluster_id == primary_cluster:
             claim = mc_index
         else:
             similarities: defaultdict[int, list[float]] = defaultdict(list)
@@ -51,20 +63,32 @@ def run(sim_matrix: npt.NDArray[np.float_], mc_index: t.Optional[int]) -> Result
 
             claim, _ = max(similarities.items(), key=lambda x: mean(x[1]))
 
-            if cluster_id == min(clusters.keys()):
-                mc_index = claim
+        # Only on first run of the loop
+        if mc_index is None:
+            mc_index = claim
 
         for adu in adus:
             if adu != claim:
                 relations.append(Relation(adu, claim))
 
-        if cluster_id not in cluster_claims:
-            cluster_claims[cluster_id] = claim
+        cluster_claims[cluster_id] = claim
 
-    for cluster_target, cluster_source in cluster_connections.items():
-        relations.append(
-            Relation(cluster_claims[cluster_source], cluster_claims[cluster_target])
+    # https://stackoverflow.com/a/61917979
+    while not set(cluster_claims).issuperset(cluster_connections.nodes()):
+        to_be_removed = filter(
+            lambda x: x not in cluster_claims, cluster_connections.nodes()
         )
+
+        for node in to_be_removed:
+            parent = next(cluster_connections.predecessors(node))
+            cluster_connections = nx.contracted_nodes(
+                cluster_connections, parent, node, self_loops=False
+            )
+
+    for edge in cluster_connections.edges():
+        source = edge[0]
+        target = edge[1]
+        relations.append(Relation(cluster_claims[source], cluster_claims[target]))
 
     # print(clusterer.condensed_tree_.to_networkx().edges())
     # plt.figure()
