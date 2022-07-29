@@ -10,14 +10,12 @@ import numpy.typing as npt
 from gklearn.ged.env import GEDEnv
 from gklearn.ged.env import Options as GEDOptions
 from rich import print
-from sklearn.metrics import jaccard_score
+from sklearn.metrics import jaccard_score, mean_absolute_error, mean_squared_error
 from sklearn.preprocessing import MultiLabelBinarizer
-
-NX_OPT = {"atom_attrs": {"label": lambda x: x.id}}
 
 
 def error(method: str, metric: str, graph1: ag.Graph, graph2: ag.Graph) -> float:
-    # print(f"[b]{method}:[/b] Error for {metric}({graph1.name}, {graph2.name})")
+    print(f"[b]{method}:[/b] Error for {metric}({graph1.name}, {graph2.name})")
     return 0.0
 
 
@@ -62,12 +60,11 @@ def edit_graphkit_learn(graph1: ag.Graph, graph2: ag.Graph) -> float:
 
 
 def edit_graphmatch(graph1: ag.Graph, graph2: ag.Graph) -> float:
-    nx1 = graph1.to_nx(**NX_OPT)
-    nx2 = graph2.to_nx(**NX_OPT)
-
     ged = gm.GraphEditDistance(1, 1, 1, 1)
     # ged.set_attr_graph_used("label", "")
-    operations: npt.NDArray[np.float_] = ged.compare([nx1, nx2], None)
+    operations: npt.NDArray[np.float_] = ged.compare(
+        [graph1.to_nx(), graph2.to_nx()], None
+    )
 
     # masked_operations: npt.NDArray[np.float_] = np.ma.masked_equal(
     #     operations, 0.0, copy=False
@@ -80,14 +77,18 @@ def edit_graphmatch(graph1: ag.Graph, graph2: ag.Graph) -> float:
     )
 
 
-def edit_nx(graph1: ag.Graph, graph2: ag.Graph) -> float:
-    nx1 = graph1.to_nx(**NX_OPT)
-    nx2 = graph2.to_nx(**NX_OPT)
-
+def edit_networkx(graph1: ag.Graph, graph2: ag.Graph) -> float:
     if dist := nx.graph_edit_distance(
-        nx1,
-        nx2,
+        graph1.to_nx(atom_attrs={"label": lambda x: x.plain_text}),
+        graph2.to_nx(atom_attrs={"label": lambda x: x.plain_text}),
+        timeout=10,
         node_match=lambda x, y: x["label"] == y["label"],
+        # node_subst_cost=lambda x, y: 0.0,
+        # node_del_cost=lambda x: 0.0,
+        # node_ins_cost=lambda x: 0.0,
+        # edge_subst_cost=lambda x, y: 0.0,
+        # edge_del_cost=lambda x: 1.0,
+        # edge_ins_cost=lambda x: 1.0,
     ):
         return 1 - dist / _normalization(graph1, graph2)
 
@@ -125,8 +126,49 @@ def jaccard_edges(graph1: ag.Graph, graph2: ag.Graph) -> float:
     )
 
 
+def visual_hierarchy(graph1: ag.Graph, graph2: ag.Graph) -> float:
+    true_levels = _build_hierarchy(graph1)
+    pred_levels = _build_hierarchy(graph2)
+
+    # Pad the lists with zeros to have the same length
+    max_len = max(len(true_levels), len(pred_levels))
+    true_levels += [0] * (max_len - len(true_levels))
+    pred_levels += [0] * (max_len - len(pred_levels))
+
+    # Normalize the error and return it as a similarity value
+    return 1 - (mean_absolute_error(true_levels, pred_levels) / max_len)
+
+
+def _build_hierarchy(g: ag.Graph) -> list[int]:
+    start = g.major_claim or g.root_node
+    assert start is not None
+
+    hierarchy: list[set[ag.Node]] = [{start}]
+
+    # As long as the last level of the hierarchy contains at least one element
+    while hierarchy[-1]:
+        # Add a new level for storing the incoming nodes
+        hierarchy.append(set())
+
+        # Iterate over the nodes in the previous (-2) level and add all incoming ones the the current (-1) level
+        for node in hierarchy[-2]:
+            hierarchy[-1].update(g.incoming_nodes(node))
+
+    # We do not return the first level (major claim), thus there should be at least one other level
+    assert len(hierarchy) > 1
+
+    return [len(level) for level in hierarchy[1:]]
+
+
 def _normalization(graph1: ag.Graph, graph2: ag.Graph) -> float:
     return len(graph1.nodes) + len(graph2.nodes) + len(graph1.edges) + len(graph2.edges)
 
 
-FUNCTIONS = [edit_graphkit_learn, jaccard_nodes, jaccard_edges, edit_graphmatch]
+FUNCTIONS = [
+    edit_graphkit_learn,
+    # jaccard_nodes,
+    jaccard_edges,
+    # edit_graphmatch,
+    visual_hierarchy,
+    # edit_networkx,
+]

@@ -66,11 +66,14 @@ class Runner:
     def run_random(self) -> algs.Result:
         return algs.random(list(range(len(self.atom_nodes))), self.mc)
 
-    def run_recursive(self) -> algs.Result:
-        return algs.recursive(
+    def run_kmeans(self) -> algs.Result:
+        return algs.kmeans(
             dict(enumerate(self.atom_embeddings)),
             self.atom_embeddings[self.mc] if self.mc else None,
         )
 
     def run_sim(self) -> algs.Result:
         return algs.sim(self.sim_matrix, self.mc)
+
+    def run_hdbscan(self) -> algs.Result:
+        return algs.hdbscan(self.sim_matrix, self.mc)
