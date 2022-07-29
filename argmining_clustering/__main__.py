@@ -1,12 +1,16 @@
 import typing as t
 from collections import defaultdict
+from io import StringIO
 from pathlib import Path
 from statistics import mean, median
 from time import time
 
 import arguebuf as ag
+import pendulum
 import typer
 from rich import print
+from rich.console import Console
+from rich.pretty import Pretty
 from rich.progress import track
 from rich.table import Table
 
@@ -25,6 +29,7 @@ def run(
     invert_sim: bool = False,
     model: str = "en_core_web_lg",
 ):
+    params = locals()
     features.load_spacy(model)
     global_eval: dict[str, dict[str, list[float]]] = defaultdict(
         lambda: defaultdict(list)
@@ -79,15 +84,30 @@ def run(
     funcs = ["duration"] + sorted(
         [func_name for func_name in evaluation.FUNCTIONS.keys()]
     )
+    console = Console(file=StringIO(), width=88)
+    console.print(params)
 
     for aggregation in (mean, min, max, median):
-        table = Table("method", *funcs, title=aggregation.__name__)
+        table = Table(title=aggregation.__name__)
+        table.add_column("Method")
+
+        for func in funcs:
+            table.add_column(func, justify="right")
 
         for clustering_name, eval in global_eval.items():
             values = ["{:.3f}".format(aggregation(eval[func])) for func in funcs]
             table.add_row(clustering_name, *values)
 
-        print(table)
+        console.print(table)
+
+    printed_content = t.cast(StringIO, console.file).getvalue()
+    print(printed_content)
+
+    console_path = Path(
+        "./data/output/", pendulum.now().format("YYYY-MM-DD-HH-mm-ss")
+    ).with_suffix(".txt")
+    with console_path.open("w") as f:
+        f.write(printed_content)
 
 
 if __name__ == "__main__":
