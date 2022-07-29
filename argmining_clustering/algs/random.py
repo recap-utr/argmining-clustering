@@ -7,7 +7,7 @@ from argmining_clustering.algs.model import Relation, Relations, Result
 def run(nodes: t.List[int], mc_index: t.Optional[int] = None) -> Result:
     random.seed(0)
 
-    if not mc_index:
+    if mc_index is None:
         mc_index = random.choice(nodes)
 
     sampled_nodes = [mc_index]
