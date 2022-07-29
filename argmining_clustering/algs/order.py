@@ -10,20 +10,20 @@ def constraint_holds(target, source, k):
 def compute_MC_sim_order(MC, similarity_matrix, docs):
     """
     Kurzer Hack, um Problem zu lösen!
-    MC: position of MC in input order, eqv. to similarity matrix indexes 
+    MC: position of MC in input order, eqv. to similarity matrix indexes
     """
     sim_loc_pair = [x for x in zip(similarity_matrix[MC], list(range(len(docs))))]
 
-    sorted_sim_pos_pairs = sorted(sim_loc_pair, key=lambda tupl: tupl[0], reverse=True) 
-    #del sorted_sim_pos_pairs[0] # first sim loc is 1.0 to MC, thus remove
-    
+    sorted_sim_pos_pairs = sorted(sim_loc_pair, key=lambda tupl: tupl[0], reverse=True)
+    # del sorted_sim_pos_pairs[0] # first sim loc is 1.0 to MC, thus remove
+
     order = [position for (sim, position) in sorted_sim_pos_pairs]
-    
+
     return order
 
 
 def run(MC, similarity_matrix, docs, k=2) -> Result:
-    if not MC:
+    if MC is None:
         MC = t.cast(int, similarity_matrix.sum(axis=1).argmax())
 
     order = compute_MC_sim_order(MC, similarity_matrix, docs)

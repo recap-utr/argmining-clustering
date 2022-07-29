@@ -143,7 +143,9 @@ def mc_agreement(graph1: ag.Graph, graph2: ag.Graph) -> float:
     mc1 = graph1.major_claim or graph1.root_node
     mc2 = graph2.major_claim or graph2.root_node
 
-    return 1.0 if mc1 == mc2 else 0.0
+    assert mc1 is not None and mc2 is not None
+
+    return 1.0 if mc1.id == mc2.id else 0.0
 
 
 def avg_tree_depth(graph1: ag.Graph, graph2: ag.Graph) -> float:
