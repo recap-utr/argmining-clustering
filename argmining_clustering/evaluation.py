@@ -139,6 +139,13 @@ def visual_hierarchy(graph1: ag.Graph, graph2: ag.Graph) -> float:
     return 1 - (mean_absolute_error(true_levels, pred_levels) / max_len)
 
 
+def mc_agreement(graph1: ag.Graph, graph2: ag.Graph) -> float:
+    mc1 = graph1.major_claim or graph1.root_node
+    mc2 = graph2.major_claim or graph2.root_node
+
+    return 1.0 if mc1 == mc2 else 0.0
+
+
 def _build_hierarchy(g: ag.Graph) -> list[int]:
     start = g.major_claim or g.root_node
     assert start is not None
@@ -171,4 +178,5 @@ FUNCTIONS = [
     # edit_graphmatch,
     visual_hierarchy,
     # edit_networkx,
+    mc_agreement,
 ]
