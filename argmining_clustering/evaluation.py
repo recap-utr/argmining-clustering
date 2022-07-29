@@ -146,6 +146,26 @@ def mc_agreement(graph1: ag.Graph, graph2: ag.Graph) -> float:
     return 1.0 if mc1 == mc2 else 0.0
 
 
+def avg_tree_depth(graph1: ag.Graph, graph2: ag.Graph) -> float:
+    depth1 = _compute_avg_depth(graph1)
+    depth2 = _compute_avg_depth(graph2)
+
+    return 1 - abs(depth1 - depth2) / max(depth1, depth2)
+
+
+def _compute_avg_depth(g: ag.Graph) -> float:
+    depths = [_max_node_depth(g, leaf) for leaf in g.leaf_nodes]
+    return mean(depths)
+
+
+def _max_node_depth(g: ag.Graph, node: ag.Node) -> int:
+    values = [_max_node_depth(g, outgoing) for outgoing in g.outgoing_nodes(node)]
+    values.append(
+        0
+    )  # add 0 so that at least one element is always in the list of values
+    return max(values) + 1
+
+
 def _build_hierarchy(g: ag.Graph) -> list[int]:
     start = g.major_claim or g.root_node
     assert start is not None
@@ -179,4 +199,5 @@ FUNCTIONS = [
     visual_hierarchy,
     # edit_networkx,
     mc_agreement,
+    avg_tree_depth,
 ]
