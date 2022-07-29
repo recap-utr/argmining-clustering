@@ -70,7 +70,7 @@ def run(
             for eval_func_name, eval_func_value in avg.items():
                 global_eval[clustering_name][eval_func_name].append(eval_func_value)
 
-    funcs = sorted([func.__name__ for func in evaluation.FUNCTIONS])
+    funcs = sorted([func_name for func_name in evaluation.FUNCTIONS.keys()])
     table = Table("method", *funcs)
 
     for clustering_name, eval in global_eval.items():

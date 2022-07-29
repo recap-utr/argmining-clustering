@@ -22,16 +22,16 @@ def error(method: str, metric: str, graph1: ag.Graph, graph2: ag.Graph) -> float
 def avg(method: str, graphs: t.List[t.Tuple[ag.Graph, ag.Graph]]) -> dict[str, float]:
     global_dist = {}
 
-    for func in FUNCTIONS:
+    for func_name, func in FUNCTIONS.items():
         local_dist = []
 
         for (graph1, graph2) in graphs:
             try:
                 local_dist.append(func(graph1, graph2))
             except ValueError:
-                local_dist.append(error(method, func.__name__, graph1, graph2))
+                local_dist.append(error(method, func_name, graph1, graph2))
 
-        global_dist[func.__name__] = mean(local_dist)
+        global_dist[func_name] = mean(local_dist)
 
     return global_dist
 
@@ -126,7 +126,7 @@ def jaccard_edges(graph1: ag.Graph, graph2: ag.Graph) -> float:
     )
 
 
-def visual_hierarchy(graph1: ag.Graph, graph2: ag.Graph) -> float:
+def tree_width(graph1: ag.Graph, graph2: ag.Graph) -> float:
     true_levels = _build_hierarchy(graph1)
     pred_levels = _build_hierarchy(graph2)
 
@@ -148,7 +148,7 @@ def mc_agreement(graph1: ag.Graph, graph2: ag.Graph) -> float:
     return 1.0 if mc1.id == mc2.id else 0.0
 
 
-def avg_tree_depth(graph1: ag.Graph, graph2: ag.Graph) -> float:
+def tree_depth(graph1: ag.Graph, graph2: ag.Graph) -> float:
     depth1 = _compute_avg_depth(graph1)
     depth2 = _compute_avg_depth(graph2)
 
@@ -193,13 +193,10 @@ def _normalization(graph1: ag.Graph, graph2: ag.Graph) -> float:
     return len(graph1.nodes) + len(graph2.nodes) + len(graph1.edges) + len(graph2.edges)
 
 
-FUNCTIONS = [
-    edit_graphkit_learn,
-    # jaccard_nodes,
-    jaccard_edges,
-    # edit_graphmatch,
-    visual_hierarchy,
-    # edit_networkx,
-    mc_agreement,
-    avg_tree_depth,
-]
+FUNCTIONS = {
+    "edit": edit_graphkit_learn,
+    "jaccard": jaccard_edges,
+    "tree-depth": tree_depth,
+    "tree-width": tree_width,
+    "mc-agreement": mc_agreement,
+}
