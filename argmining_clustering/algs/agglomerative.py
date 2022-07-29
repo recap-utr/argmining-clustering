@@ -256,7 +256,7 @@ def run(
     # clusters: [[0], [1], [2], ..., [n]]
     initial_clusters = [[i] for i in range(len(docs))]
 
-    if mc_index:
+    if mc_index is not None:
         return construct_from_clustering_with_MC_available(
             initial_clusters, mc_index, sim_matrix, mode="average", docs=docs
         )
