@@ -33,8 +33,8 @@ def run(sim_matrix: npt.NDArray[np.float_], mc_index: t.Optional[int]) -> Result
     cluster_claims: dict[int, int] = {}
 
     for edge in g.edges():
-        cluster_id = edge[0]
-        adu_id = edge[1]
+        cluster_id: int = edge[0]
+        adu_id: int = edge[1]
 
         if adu_id < num_adus:
             clusters[cluster_id].add(adu_id)
@@ -69,7 +69,7 @@ def run(sim_matrix: npt.NDArray[np.float_], mc_index: t.Optional[int]) -> Result
             claim, _ = max(similarities.items(), key=lambda x: mean(x[1]))
 
         # Only on first run of the loop
-        if mc_index is None:
+        if mc_index is None and cluster_id == primary_cluster:
             mc_index = claim
 
         for adu in adus:
@@ -91,8 +91,8 @@ def run(sim_matrix: npt.NDArray[np.float_], mc_index: t.Optional[int]) -> Result
             )
 
     for edge in cluster_connections.edges():
-        source = edge[0]
-        target = edge[1]
+        source: int = edge[0]
+        target: int = edge[1]
         relations.append(Relation(cluster_claims[source], cluster_claims[target]))
 
     # print(clusterer.condensed_tree_.to_networkx().edges())
@@ -102,6 +102,7 @@ def run(sim_matrix: npt.NDArray[np.float_], mc_index: t.Optional[int]) -> Result
     #     "./data/output/" + pendulum.now().format("YYYY-MM-DD-HH-mm-ss") + ".pdf"
     # )
 
+    # Otherwise IDEs will show warnings as this is not obvious from the code itself
     assert mc_index is not None
 
     return Result(mc_index, relations)
