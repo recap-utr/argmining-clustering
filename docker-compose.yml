@@ -5,11 +5,4 @@ services:
     build: .
     volumes:
       - .:/app
-    command:
-      - poetry
-      - run
-      - python
-      - -m
-      - argmining_clustering
-      - "microtexts/*.json"
-      - "essays/*.ann"
+    command: ./evaluate.sh
