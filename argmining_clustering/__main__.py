@@ -56,7 +56,7 @@ def run(
 
             if output_folder:
                 serialization.save(
-                    reconstructed_graph, output_folder / path, render=True
+                    reconstructed_graph, output_folder / path / method_name, render=True
                 )
 
             reconstructed_graph.strip_scheme_nodes()
