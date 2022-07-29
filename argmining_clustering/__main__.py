@@ -1,7 +1,8 @@
 import typing as t
 from collections import defaultdict
 from pathlib import Path
-from statistics import mean
+from statistics import mean, median
+from time import time
 
 import arguebuf as ag
 import typer
@@ -49,7 +50,9 @@ def run(
         )
 
         for method_name, method in runner.methods.items():
+            start = time()
             clustering = method()
+            end = time()
             reconstructed_graph = reconstruction.argument_graph(
                 original_graph.atom_nodes, index2id, clustering
             )
@@ -63,6 +66,9 @@ def run(
             local_eval[method_name].append(
                 (original_stripped_graph, reconstructed_graph)
             )
+            global_eval[method_name]["duration"].append(
+                (end - start) * 1000
+            )  # store in ms
 
         for clustering_name, values in local_eval.items():
             avg = evaluation.avg(clustering_name, values)
@@ -70,14 +76,18 @@ def run(
             for eval_func_name, eval_func_value in avg.items():
                 global_eval[clustering_name][eval_func_name].append(eval_func_value)
 
-    funcs = sorted([func_name for func_name in evaluation.FUNCTIONS.keys()])
-    table = Table("method", *funcs)
+    funcs = ["duration"] + sorted(
+        [func_name for func_name in evaluation.FUNCTIONS.keys()]
+    )
 
-    for clustering_name, eval in global_eval.items():
-        values = ["{:.3f}".format(mean(eval[func])) for func in funcs]
-        table.add_row(clustering_name, *values)
+    for aggregation in (mean, min, max, median):
+        table = Table("method", *funcs, title=aggregation.__name__)
 
-    print(table)
+        for clustering_name, eval in global_eval.items():
+            values = ["{:.3f}".format(aggregation(eval[func])) for func in funcs]
+            table.add_row(clustering_name, *values)
+
+        print(table)
 
 
 if __name__ == "__main__":
