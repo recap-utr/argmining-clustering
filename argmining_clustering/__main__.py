@@ -28,6 +28,7 @@ def run(
     predict_mc: bool = False,
     invert_sim: bool = False,
     model: str = "en_core_web_lg",
+    progress: bool = True,
 ):
     features.load_spacy(model)
     params = locals()
@@ -35,8 +36,9 @@ def run(
         lambda: defaultdict(list)
     )
     cases = serialization.load(input_folder, input_patterns)
+    iterator = track(cases.items()) if progress else cases.items()
 
-    for path, original_graph in track(cases.items()):
+    for path, original_graph in iterator:
         # For now, we do not consider the schemes between atom nodes during the evaluation
         original_stripped_graph = original_graph.copy().strip_scheme_nodes()
 
