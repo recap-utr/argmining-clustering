@@ -120,10 +120,7 @@ def jaccard_edges(graph1: ag.Graph, graph2: ag.Graph) -> float:
     edges2 = {f"{e.source.id},{e.target.id}" for e in graph2.edges.values()}
 
     # https://www.nltk.org/_modules/nltk/metrics/distance.html#jaccard_distance
-    return 1 - (
-        (len(edges1.union(edges2)) - len(edges1.intersection(edges2)))
-        / len(edges1.union(edges2))
-    )
+    return len(edges1.intersection(edges2)) / len(edges1.union(edges2))
 
 
 def tree_breadth(graph1: ag.Graph, graph2: ag.Graph) -> float:
