@@ -2,7 +2,10 @@
 name = "argmining-clustering"
 version = "0.1.0"
 description = ""
-authors = ["Mirko Lenz <info@mirko-lenz.de>"]
+authors = [
+    "Mirko Lenz <info@mirko-lenz.de>",
+    "Premtim Sahitaj <s4prsahi@uni-trier.de>",
+]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.11"
