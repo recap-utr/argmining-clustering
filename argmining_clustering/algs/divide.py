@@ -34,8 +34,10 @@ def run(
     clustering: t.Dict[int, t.Any] = {}
     scores: t.Dict[int, float] = {}
 
-    min_clusters = 2
-    max_clusters = max(len(premise_ids) // 2, 3)
+    min_clusters = 2  # for '1', the silhouette score cannot be computed
+    max_clusters = (
+        max(len(premise_ids) // 2, min_clusters) + 1
+    )  # at least min_clusters + 1 needs to be passed to range()
 
     for n_clusters in range(min_clusters, max_clusters):
         features = normalize(np.array([nodes[id] for id in premise_ids]))
