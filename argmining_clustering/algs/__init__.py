@@ -1,6 +1,6 @@
 from .agglomerative import run as agglomerative
-from .centroid import run as centroid
 from .density import run as density
+from .divide import run as divide
 from .flat import run as flat
 from .model import Relation as Relation
 from .model import Relations as Relations

@@ -66,8 +66,8 @@ class Runner:
     def run_random(self) -> algs.Result:
         return algs.random(list(range(len(self.atom_nodes))), self.mc)
 
-    def run_centroid(self) -> algs.Result:
-        return algs.centroid(
+    def run_divide(self) -> algs.Result:
+        return algs.divide(
             dict(enumerate(self.atom_embeddings)),
             self.atom_embeddings[self.mc] if self.mc is not None else None,
         )
