@@ -24,7 +24,10 @@ app = typer.Typer()
 def run(
     input_patterns: t.List[str],
     input_folder: Path = Path("data", "input"),
-    output_folder: t.Optional[Path] = None,
+    output_folder: Path = Path("data", "output"),
+    save_json: bool = False,
+    save_pdf: bool = False,
+    save_eval: bool = True,
     predict_mc: bool = False,
     invert_sim: bool = False,
     model: str = "en_core_web_lg",
@@ -38,7 +41,7 @@ def run(
     cases = serialization.load(input_folder, input_patterns)
     iterator = track(cases.items()) if progress else cases.items()
 
-    for path, original_graph in iterator:
+    for relative_path, original_graph in iterator:
         # For now, we do not consider the schemes between atom nodes during the evaluation
         original_stripped_graph = original_graph.copy().strip_scheme_nodes()
 
@@ -64,12 +67,13 @@ def run(
                 original_graph.atom_nodes, index2id, clustering
             )
 
-            if output_folder:
-                serialization.save(
-                    reconstructed_graph,
-                    output_folder / path / method_name,
-                    render=True,
-                )
+            output_path = output_folder / relative_path / method_name
+
+            if save_json:
+                serialization.save_json(reconstructed_graph, output_path)
+
+            if save_pdf:
+                serialization.save_pdf(reconstructed_graph, output_path)
 
             reconstructed_graph.strip_scheme_nodes()
             local_eval[method_name].append(
@@ -88,7 +92,7 @@ def run(
     funcs = ["duration"] + sorted(
         [func_name for func_name in evaluation.FUNCTIONS.keys()]
     )
-    console = Console(file=StringIO(), width=88)
+    console = Console(file=StringIO(), width=120)
     console.print(params)
 
     for aggregation in (mean, min, max, median):
@@ -107,9 +111,10 @@ def run(
     printed_content = t.cast(StringIO, console.file).getvalue()
     print(printed_content)
 
-    console_path = Path("./data/output/", ag.uuid()).with_suffix(".txt")
-    with console_path.open("w") as f:
-        f.write(printed_content)
+    if save_eval:
+        console_path = (output_folder / ag.uuid()).with_suffix(".txt")
+        with console_path.open("w") as f:
+            f.write(printed_content)
 
 
 if __name__ == "__main__":

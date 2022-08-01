@@ -18,9 +18,11 @@ def load(
     }
 
 
-def save(graph: arguebuf.Graph, path: Path, render: bool) -> None:
+def save_json(graph: arguebuf.Graph, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     graph.to_file(path.with_suffix(".json"))
 
-    if render:
-        arguebuf.render(graph.to_gv(), path.with_suffix(".pdf"))
+
+def save_pdf(graph: arguebuf.Graph, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    arguebuf.render(graph.to_gv(), path.with_suffix(".pdf"))
