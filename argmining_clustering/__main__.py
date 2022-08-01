@@ -27,8 +27,8 @@ def run(
     output_folder: Path = Path("data", "output"),
     save_json: bool = False,
     save_pdf: bool = False,
-    save_eval: bool = True,
-    predict_mc: bool = False,
+    save_eval: bool = False,
+    preset_mc: bool = False,
     invert_sim: bool = False,
     model: str = "en_core_web_lg",
     progress: bool = True,
@@ -51,7 +51,7 @@ def run(
         mc = original_graph.major_claim or original_graph.root_node
         assert mc is not None
 
-        mc_index = None if predict_mc else id2index[mc.id]
+        mc_index = id2index[mc.id] if preset_mc else None
         atom_nodes = list(original_graph.atom_nodes.values())
 
         runner = Runner(atom_nodes, mc_index, invert_sim)

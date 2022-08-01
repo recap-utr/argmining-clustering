@@ -3,6 +3,6 @@
 alias app="poetry run python -m argmining_clustering --no-progress"
 
 for glob in "microtexts/*.json" "essays/*.ann" "kialo-small/*.txt"; do
-    app "$glob" --predict-mc &
+    app "$glob" --save-eval &
 done
 wait
