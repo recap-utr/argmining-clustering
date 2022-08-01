@@ -126,7 +126,7 @@ def jaccard_edges(graph1: ag.Graph, graph2: ag.Graph) -> float:
     )
 
 
-def tree_width(graph1: ag.Graph, graph2: ag.Graph) -> float:
+def tree_breadth(graph1: ag.Graph, graph2: ag.Graph) -> float:
     true_levels = _build_hierarchy(graph1)
     pred_levels = _build_hierarchy(graph2)
 
@@ -136,7 +136,7 @@ def tree_width(graph1: ag.Graph, graph2: ag.Graph) -> float:
     pred_levels += [0] * (max_len - len(pred_levels))
 
     # Normalize the error and return it as a similarity value
-    return 1 - (mean_absolute_error(true_levels, pred_levels) / max_len)
+    return 1 - (mean_absolute_error(true_levels, pred_levels) / sum(true_levels))
 
 
 def mc_agreement(graph1: ag.Graph, graph2: ag.Graph) -> float:
@@ -197,6 +197,6 @@ FUNCTIONS = {
     "edit": edit_graphkit_learn,
     "jaccard": jaccard_edges,
     "tree-depth": tree_depth,
-    "tree-width": tree_width,
+    "tree-breadth": tree_breadth,
     "mc-agreement": mc_agreement,
 }
