@@ -115,8 +115,8 @@ def identify_target_node(cluster, query, similarity_matrix):
 # UNKNOWN MAJOR CLAIM
 def construct_from_clustering(clusters, similarity_matrix, docs, mode="average"):
     anker = [cluster[0] for cluster in clusters]
-    relations = []
-    mc_index: t.Optional[int] = None
+    relations: list[Relation] = []
+    # mc_index: t.Optional[int] = None
 
     # THIS ENABLES to start the clustering process with 2 elements per cluster if needed
     # [A,B] order is enforced for first branch connection from A (target) to B (source)
@@ -126,7 +126,7 @@ def construct_from_clustering(clusters, similarity_matrix, docs, mode="average")
             source = cluster[1]
             target = cluster[0]
             relations.append(Relation(source, target))
-            mc_index = target
+            # mc_index = target
 
     while len(clusters) > 1:
         i, j = next_clusters(clusters, similarity_matrix, mode, docs)
@@ -154,8 +154,8 @@ def construct_from_clustering(clusters, similarity_matrix, docs, mode="average")
         source = source_anker
         relations.append(Relation(source, target))
 
-        if mc_index is None:
-            mc_index = target
+        # if mc_index is None:
+        #     mc_index = target
 
         del clusters[j]
         del anker[j]
@@ -165,7 +165,21 @@ def construct_from_clustering(clusters, similarity_matrix, docs, mode="average")
         clusters.append(merged_cluster)
         anker.append(merged_anker)
 
-    return Result(mc_index or 0, relations)
+    adus = set()
+
+    for rel in relations:
+        adus.update((rel.claim, rel.premise))
+
+    premise_claims = {
+        premise: {rel2.claim for rel2 in relations if premise == rel2.premise}
+        for premise in adus
+    }
+    mc_candidates = {
+        premise for premise, claims in premise_claims.items() if len(claims) == 0
+    }
+    assert len(mc_candidates) == 1
+
+    return Result(next(iter(mc_candidates)), relations)
 
 
 def construct_from_clustering_with_MC_available(
