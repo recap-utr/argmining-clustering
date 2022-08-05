@@ -14,7 +14,7 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 RUN apt update && \
-    apt install -y graphviz && \
+    apt install -y graphviz graphviz-dev && \
     rm -rf /var/lib/apt/lists/* && \
     curl -sSL https://install.python-poetry.org | python - \
     && poetry config virtualenvs.create false
