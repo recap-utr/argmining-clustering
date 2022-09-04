@@ -1,4 +1,4 @@
-# Argument Mining using Clustering
+# Unsupervised Algorithms to Construct Argument Graphs based on Clustering
 
 The code in this repository has been used to conduct the experiments for our paper.
 In the `README`, you will find instructions on how to use the software.
