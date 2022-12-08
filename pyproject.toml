@@ -11,7 +11,7 @@ authors = [
 python = ">=3.9,<3.11"
 arguebuf = "^1.0.3"
 scikit-learn = "^1.1.1"
-typer = "^0.4.1"
+typer = "^0.7.0"
 numpy = "^1.22.4"
 scipy = "^1.8.1"
 matplotlib = "^3.5.2"
