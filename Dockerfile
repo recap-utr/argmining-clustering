@@ -3,7 +3,7 @@
 # https://github.com/nautobot/nautobot/blob/develop/docker/Dockerfile
 
 ARG POETRY_VERSION=1.1.14
-ARG PYTHON_VERSION=3.9
+ARG PYTHON_VERSION=3.11
 
 FROM python:${PYTHON_VERSION}
 
